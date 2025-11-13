@@ -1,0 +1,20 @@
+spring.application.name: api-consumer
+
+spring.threads.virtual.enabled: true
+
+server.port: 7002
+
+app:
+  product-service:
+    host: localhost
+    port: 7001
+  recommendation-service:
+    host: localhost
+    port: 7001
+  review-service:
+    host: localhost
+    port: 7001
+
+logging.level:
+  root: INFO
+  se.magnus: DEBUG

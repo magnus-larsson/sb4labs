@@ -1,0 +1,9 @@
+spring.application.name: api-provider
+
+spring.threads.virtual.enabled: true
+
+server.port: 7001
+
+logging.level:
+  root: INFO
+  se.magnus: DEBUG
