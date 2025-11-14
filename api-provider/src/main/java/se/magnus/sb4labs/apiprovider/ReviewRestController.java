@@ -4,13 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 import se.magnus.sb4labs.api.core.review.Review;
-import se.magnus.sb4labs.api.core.review.ReviewService;
+import se.magnus.sb4labs.api.core.review.ReviewRestService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class ReviewRestController implements ReviewService {
+public class ReviewRestController implements ReviewRestService {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReviewRestController.class);
 

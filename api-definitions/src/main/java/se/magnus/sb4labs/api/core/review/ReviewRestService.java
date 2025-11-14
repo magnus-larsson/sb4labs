@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-public interface ReviewService {
+public interface ReviewRestService {
 
   /**
    * Sample usage: "curl $HOST:$PORT/review?productId=1".
@@ -14,7 +14,8 @@ public interface ReviewService {
    * @return the reviews of the product
    */
   @GetMapping(
-    value = "/review",
+    value = "/{version}/review",
+    version = "1.0",
     produces = "application/json")
   List<Review> getReviews(@RequestParam(value = "productId", required = true) int productId);
 }

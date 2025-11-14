@@ -3,7 +3,7 @@ package se.magnus.sb4labs.api.composite.product;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-public interface ProductCompositeService {
+public interface ProductCompositeRestService {
 
   /**
    * Sample usage: "curl $HOST:$PORT/product-composite/1".

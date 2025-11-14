@@ -1,4 +1,5 @@
 rootProject.name = 'Spring Boot 4 Labs'
 
+include ':api-definitions'
 include ':api-consumer'
 include ':api-provider'

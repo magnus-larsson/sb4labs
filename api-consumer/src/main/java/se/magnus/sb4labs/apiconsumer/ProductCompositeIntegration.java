@@ -7,18 +7,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import se.magnus.sb4labs.api.core.product.Product;
-import se.magnus.sb4labs.api.core.product.ProductService;
+import se.magnus.sb4labs.api.core.product.ProductRestService;
 import se.magnus.sb4labs.api.core.recommendation.Recommendation;
-import se.magnus.sb4labs.api.core.recommendation.RecommendationService;
+import se.magnus.sb4labs.api.core.recommendation.RecommendationRestService;
 import se.magnus.sb4labs.api.core.review.Review;
-import se.magnus.sb4labs.api.core.review.ReviewService;
+import se.magnus.sb4labs.api.core.review.ReviewRestService;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class ProductCompositeIntegration implements ProductService, RecommendationService, ReviewService {
+public class ProductCompositeIntegration implements ProductRestService, RecommendationRestService, ReviewRestService {
 
   private static final Logger LOG = LoggerFactory.getLogger(ProductCompositeIntegration.class);
 
@@ -37,9 +37,9 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     this.restClient = restClient;
     this.mapper = mapper;
 
-    productServiceUrl = "http://" + props.productService().host() + ":" + props.productService().port() + "/product/";
-    recommendationServiceUrl = "http://" + props.recommendationService().host() + ":" + props.recommendationService().port() + "/recommendation?productId=";
-    reviewServiceUrl = "http://" + props.reviewService().host() + ":" + props.reviewService().port() + "/review?productId=";
+    productServiceUrl = "http://" + props.productService().host() + ":" + props.productService().port() + "/1/product/";
+    recommendationServiceUrl = "http://" + props.recommendationService().host() + ":" + props.recommendationService().port() + "/1/recommendation?productId=";
+    reviewServiceUrl = "http://" + props.reviewService().host() + ":" + props.reviewService().port() + "/1/review?productId=";
   }
 
   public Product getProduct(int productId) {

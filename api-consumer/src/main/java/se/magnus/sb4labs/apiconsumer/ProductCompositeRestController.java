@@ -16,7 +16,7 @@ import java.util.concurrent.StructuredTaskScope;
 import static java.util.concurrent.StructuredTaskScope.Subtask;
 
 @RestController
-public class ProductCompositeRestController implements ProductCompositeService {
+public class ProductCompositeRestController implements ProductCompositeRestService {
 
   final static private Logger LOG = LoggerFactory.getLogger(ProductCompositeRestController.class);
 

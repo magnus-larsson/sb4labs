@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-public interface RecommendationService {
+public interface RecommendationRestService {
 
   /**
    * Sample usage: "curl $HOST:$PORT/recommendation?productId=1".
@@ -14,7 +14,8 @@ public interface RecommendationService {
    * @return the recommendations of the product
    */
   @GetMapping(
-    value = "/recommendation",
+    value = "/{version}/recommendation",
+    version = "1.0",
     produces = "application/json")
   List<Recommendation> getRecommendations(
     @RequestParam(value = "productId", required = true) int productId);
