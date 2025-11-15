@@ -25,11 +25,51 @@ kill $(jobs -p)
 
 ```
 
-# TODO
+# API versioning
 
-Source: https://spring.io/blog/2025/09/02/road_to_ga_introduction
+## Provider config
 
-## devtools
+```java
+@Configuration
+public class ApiVersionConfig implements WebMvcConfigurer {
+
+  @Override
+  public void configureApiVersioning(ApiVersionConfigurer configurer) {
+    configurer
+      .usePathSegment(0)  // Index of the path segment containing version
+      .addSupportedVersions("1.0", "2.0")
+      .setDefaultVersion("1.0");
+  }
+}
+```
+
+```java
+@GetMapping(
+value = "/{version}/product/{productId}",
+version = "1",
+produces = "application/json")
+Product getProduct(@PathVariable int productId);
+```
+
+## Consumer config, RestClient
+
+```java
+  @Bean
+  RestClient restClient() {
+    return RestClient.builder().
+      apiVersionInserter(ApiVersionInserter.usePathSegment(0)).
+      build();
+  }
+```
+
+```java
+      Product product = restClient.get()
+        .uri(url)
+        .apiVersion("1")
+        ...
+```
+
+# Spring Dev Tools
 
 See:
 
@@ -56,6 +96,11 @@ Also:
 1. Select "Advanced settings"
 1. In the "Compiler" section, select "Allow auto-make to start even if developed application is currently running"
 
+
+# TODO
+
+Source: https://spring.io/blog/2025/09/02/road_to_ga_introduction
+
 ## jackson 2 -> 3
 
 T ex byta ut ObjectMapper...
@@ -64,7 +109,7 @@ Kolla användning av com.fasterxml.jackson i bokens källkod...
 ## versions
 
 1. How to specify the version as a client, e.g. using RestCLient, except from adding it to the URL?
-2. Interfce baesd clients?
+2. Interface baesd clients?
 
 ## text based drawings in markdown
 

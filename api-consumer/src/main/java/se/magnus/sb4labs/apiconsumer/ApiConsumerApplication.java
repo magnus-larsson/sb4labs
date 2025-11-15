@@ -6,7 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.client.RestClient;
 
 @SpringBootApplication
@@ -17,12 +17,14 @@ public class ApiConsumerApplication {
 
   @Bean
   RestClient restClient() {
-    return RestClient.builder().requestFactory(new SimpleClientHttpRequestFactory()).build();
+    return RestClient.builder().
+      apiVersionInserter(ApiVersionInserter.usePathSegment(0)).
+      build();
   }
 
   static void main(String[] args) {
     SpringApplication.run(ApiConsumerApplication.class, args);
-    LOG.info("ApiConsumerApplication v2 started");
+    LOG.info("ApiConsumerApplication v1 started");
   }
 
 }

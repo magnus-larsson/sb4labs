@@ -12,7 +12,7 @@ public class ApiProviderApplication {
 
   static void main(String[] args) {
     SpringApplication.run(ApiProviderApplication.class, args);
-    LOG.info("ApiProviderApplication v2 started");
+    LOG.info("ApiProviderApplication v1 started");
   }
 
 }

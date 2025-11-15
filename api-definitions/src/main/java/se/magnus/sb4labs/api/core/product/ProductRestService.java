@@ -13,7 +13,7 @@ public interface ProductRestService {
    */
   @GetMapping(
     value = "/{version}/product/{productId}",
-    version = "1.0",
+    version = "1",
     produces = "application/json")
   Product getProduct(@PathVariable int productId);
 }

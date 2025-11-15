@@ -37,9 +37,9 @@ public class ProductCompositeIntegration implements ProductRestService, Recommen
     this.restClient = restClient;
     this.mapper = mapper;
 
-    productServiceUrl = "http://" + props.productService().host() + ":" + props.productService().port() + "/1/product/";
-    recommendationServiceUrl = "http://" + props.recommendationService().host() + ":" + props.recommendationService().port() + "/1/recommendation?productId=";
-    reviewServiceUrl = "http://" + props.reviewService().host() + ":" + props.reviewService().port() + "/1/review?productId=";
+    productServiceUrl = "http://" + props.productService().host() + ":" + props.productService().port() + "/product/";
+    recommendationServiceUrl = "http://" + props.recommendationService().host() + ":" + props.recommendationService().port() + "/recommendation?productId=";
+    reviewServiceUrl = "http://" + props.reviewService().host() + ":" + props.reviewService().port() + "/review?productId=";
   }
 
   public Product getProduct(int productId) {
@@ -50,6 +50,7 @@ public class ProductCompositeIntegration implements ProductRestService, Recommen
 
       Product product = restClient.get()
         .uri(url)
+        .apiVersion("1")
         .retrieve()
         .body(Product.class);
       LOG.debug("Found a product with id: {}", product.productId());
@@ -72,6 +73,7 @@ public class ProductCompositeIntegration implements ProductRestService, Recommen
       LOG.debug("Will call getRecommendations API on URL: {}", url);
       List<Recommendation> recommendations = restClient.get()
         .uri(url)
+        .apiVersion("1")
         .retrieve()
         .body(new ParameterizedTypeReference<>() {});
 
@@ -92,6 +94,7 @@ public class ProductCompositeIntegration implements ProductRestService, Recommen
       LOG.debug("Will call getReviews API on URL: {}", url);
       List<Review> reviews = restClient.get()
         .uri(url)
+        .apiVersion("1")
         .retrieve()
         .body(new ParameterizedTypeReference<>() {});
 
