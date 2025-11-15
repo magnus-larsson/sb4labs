@@ -20,9 +20,9 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
 
   final static private Logger LOG = LoggerFactory.getLogger(ProductCompositeRestController.class);
 
-  final private ProductCompositeIntegration integration;
+  final private ProductCompositeIntegrationRestClient integration;
 
-  public ProductCompositeRestController(ProductCompositeIntegration integration) {
+  public ProductCompositeRestController(ProductCompositeIntegrationRestClient integration) {
     this.integration = integration;
   }
 

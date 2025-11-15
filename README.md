@@ -2,6 +2,7 @@
 
 ```mermaid
 graph TD;
+    Curl-->Composite;
     Composite-->Product;
     Composite-->Recommendation;
     Composite-->Review;
@@ -69,6 +70,11 @@ Product getProduct(@PathVariable int productId);
         ...
 ```
 
+## Consumer config, with HttpServiceProxyFactory
+
+Can't get it to work, see `ProductCompositeIntegrationWithProxies`
+Maybe problem with apiVersionInserter...
+
 # Spring Dev Tools
 
 See:
@@ -105,18 +111,6 @@ Source: https://spring.io/blog/2025/09/02/road_to_ga_introduction
 
 T ex byta ut ObjectMapper...
 Kolla användning av com.fasterxml.jackson i bokens källkod...
-
-## versions
-
-1. How to specify the version as a client, e.g. using RestCLient, except from adding it to the URL?
-2. Interface baesd clients?
-
-## text based drawings in markdown
-
-1. [Google: text based drawings in markdown](https://www.google.com/search?q=text+based+drawings+in+markdown&ie=UTF-8&oe=UTF-8&hl=sv-se&client=safari)
-1. [GitHub: Creating Mermaid diagrams](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams#creating-mermaid-diagrams)
-2. 
-
 
 ## resilience
 

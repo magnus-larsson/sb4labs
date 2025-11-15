@@ -4,55 +4,60 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.support.RestClientAdapter;
+import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import se.magnus.sb4labs.api.core.product.Product;
 import se.magnus.sb4labs.api.core.product.ProductRestService;
 import se.magnus.sb4labs.api.core.recommendation.Recommendation;
 import se.magnus.sb4labs.api.core.recommendation.RecommendationRestService;
 import se.magnus.sb4labs.api.core.review.Review;
 import se.magnus.sb4labs.api.core.review.ReviewRestService;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class ProductCompositeIntegration implements ProductRestService, RecommendationRestService, ReviewRestService {
+public class ProductCompositeIntegrationWithProxies implements ProductRestService, RecommendationRestService, ReviewRestService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ProductCompositeIntegration.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ProductCompositeIntegrationWithProxies.class);
 
   private final RestClient restClient;
-  private final ObjectMapper mapper;
 
-  private final String productServiceUrl;
   private final String recommendationServiceUrl;
   private final String reviewServiceUrl;
 
-  public ProductCompositeIntegration(
+  private final ProductRestService productClient;
+
+  public ProductCompositeIntegrationWithProxies(
     RestClient restClient,
-    ObjectMapper mapper,
     AppProperties props) {
 
     this.restClient = restClient;
-    this.mapper = mapper;
 
-    productServiceUrl = "http://" + props.productService().host() + ":" + props.productService().port() + "/product/";
     recommendationServiceUrl = "http://" + props.recommendationService().host() + ":" + props.recommendationService().port() + "/recommendation?productId=";
     reviewServiceUrl = "http://" + props.reviewService().host() + ":" + props.reviewService().port() + "/review?productId=";
+
+    String productBaseUrl = "http://" + props.productService().host() + ":" + props.productService().port();
+    RestClient productRestClient = RestClient.builder().
+      baseUrl(productBaseUrl).
+      apiVersionInserter(ApiVersionInserter.usePathSegment(0)).
+      defaultApiVersion("1").
+      build();
+    HttpServiceProxyFactory proxyFactory = HttpServiceProxyFactory.builder()
+      .exchangeAdapter(RestClientAdapter.create(productRestClient))
+      .build();
+    productClient = proxyFactory.createClient(ProductRestService.class);
+
   }
 
   public Product getProduct(int productId) {
 
     try {
-      String url = productServiceUrl + productId;
-      LOG.debug("Will call getProduct API on URL: {}", url);
-
-      Product product = restClient.get()
-        .uri(url)
-        .apiVersion("1")
-        .retrieve()
-        .body(Product.class);
+      LOG.debug("Will use a HttpServiceProxyFactory to call getProduct API with product id: {}", productId);
+      Product product = productClient.getProduct(productId);
       LOG.debug("Found a product with id: {}", product.productId());
 
       return product;
