@@ -8,6 +8,32 @@ graph TD;
     Composite-->Review;
 ```
 
+# Start Jaeger for OpenTelemetry tracing
+
+```
+docker run -d --name jaeger \
+  -p 16686:16686 \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  -p 5778:5778 \
+  -p 9411:9411 \
+  cr.jaegertracing.io/jaegertracing/jaeger:2.11.0
+```
+
+WebUI: http://localhost:16686
+
+When done:
+
+```
+docker rm -f jaeger
+```
+
+Note: problem with Micrometer and Structured Consurrency:
+
+1. Investigate Scoped Values: https://github.com/micrometer-metrics/context-propagation/issues/108
+2. Discuss Structured Concurrency: https://github.com/micrometer-metrics/context-propagation/issues/419
+3. micrometer observability for the new StructuredTaskScope api: https://github.com/micrometer-metrics/micrometer/issues/5761
+
 # Build and run
 
 ```
@@ -74,6 +100,21 @@ Product getProduct(@PathVariable int productId);
 
 Can't get it to work, see `ProductCompositeIntegrationWithProxies`
 Maybe problem with apiVersionInserter...
+
+# Resilience
+
+## FaultRate
+
+```
+curl 'http://localhost:7001/1/faultrate?probability=75' -X PUT
+curl http://localhost:7001/1/faultrate
+```
+
+## Retryable
+
+## CircuitBreaker
+
+## ConcurrencyLimit
 
 # Spring Dev Tools
 
