@@ -9,8 +9,8 @@ server.port: 7001
 
 management:
   opentelemetry.tracing.export.otlp.endpoint: http://localhost:4318/v1/traces
-
   tracing.sampling.probability: 1.0
+  otlp.metrics.export.enabled: false
 
 logging.level:
   root: INFO

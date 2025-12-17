@@ -8,7 +8,85 @@ graph TD;
     Composite-->Review;
 ```
 
-# Start Jaeger for OpenTelemetry tracing
+# Build and run
+
+```
+./gradlew build 
+java --enable-preview -jar api-provider/build/libs/api-provider-0.0.1-SNAPSHOT.jar &
+java --enable-preview -jar api-consumer/build/libs/api-consumer-0.0.1-SNAPSHOT.jar &
+
+curl localhost:7002/product-composite/2 -i
+curl localhost:7002/thread-info
+
+curl 'localhost:7001/1/product/1' -i
+curl 'localhost:7001/1/recommendation?productId=1' -i
+curl 'localhost:7001/1/review?productId=1' -i 
+
+kill $(jobs -p)
+
+```
+# Fine grained dependencies, smaller jars?
+
+Does it result in smaller jars and memory usage?
+
+SB 4.0.0:
+
+```
+spring init \
+--boot-version=4.0.0 \
+--type=gradle-project \
+--java-version=25 \
+--packaging=jar \
+--name=sb400 \
+--dependencies=web \
+sb400
+
+cd sb400
+sdk use java 25-tem
+./gradlew build
+ls -al build/libs/sb400-0.0.1-SNAPSHOT.jar
+cd ..
+```
+
+Results in:
+
+```
+-rw-r--r--@ 1 magnus  staff  19616003 Dec 17 09:00 build/libs/sb400-0.0.1-SNAPSHOT.jar
+```
+
+SB 3.5.8:
+
+```
+spring init \
+--boot-version=3.5.8 \
+--type=gradle-project \
+--java-version=21 \
+--packaging=jar \
+--name=sb358 \
+--dependencies=web \
+sb358
+
+cd sb358
+sdk use java 21.0.3-tem
+./gradlew build
+ls -al build/libs/sb358-0.0.1-SNAPSHOT.jar
+```
+
+Results in:
+
+```
+-rw-r--r--@ 1 magnus  staff  21044297 Dec 17 09:01 build/libs/sb358-0.0.1-SNAPSHOT.jar```
+```
+
+**Result:** Only dropped from 21 to 19 MB...
+
+# Observability
+
+Dependency:
+
+    implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+
+## Start Jaeger for OpenTelemetry tracing
 
 ```
 docker run -d --name jaeger \
@@ -28,29 +106,22 @@ When done:
 docker rm -f jaeger
 ```
 
-Note: problem with Micrometer and Structured Consurrency:
+## Problems with Micrometer and Structured Concurrency:
 
 1. Investigate Scoped Values: https://github.com/micrometer-metrics/context-propagation/issues/108
 2. Discuss Structured Concurrency: https://github.com/micrometer-metrics/context-propagation/issues/419
 3. micrometer observability for the new StructuredTaskScope api: https://github.com/micrometer-metrics/micrometer/issues/5761
+4. https://www.unlogged.io/post/enhanced-observability-with-java-21-and-spring-3-2
+5. proposed workarounds for programmatically propagate context:
+    1. https://github.com/micrometer-metrics/micrometer/issues/5761#issuecomment-2580798283
+    2. https://stackoverflow.com/questions/78889603/traceid-propagation-to-virtual-thread
+    3. https://stackoverflow.com/questions/78746378/spring-boot-3-micrometer-tracing-in-mdc/78765658#78765658
 
-# Build and run
-
-```
-./gradlew build 
-java --enable-preview -jar api-provider/build/libs/api-provider-0.0.1-SNAPSHOT.jar &
-java --enable-preview -jar api-consumer/build/libs/api-consumer-0.0.1-SNAPSHOT.jar &
-
-curl localhost:7002/product-composite/2 -i
-curl localhost:7002/thread-info
-
-curl 'localhost:7001/1/product/1' -i
-curl 'localhost:7001/1/recommendation?productId=1' -i
-curl 'localhost:7001/1/review?productId=1' -i 
-
-kill $(jobs -p)
-
-```
+> **Note: Compare with WebFlux and Project Reactor.**
+>
+> To propagate the [W3C Trace Context](https://www.w3.org/TR/trace-context/) is to specify
+>
+>     spring.reactor.context-propagation: AUTO
 
 # API versioning
 
@@ -114,6 +185,8 @@ curl http://localhost:7001/1/faultrate
 
 ## CircuitBreaker
 
+SC or Resilience4J?
+
 ## ConcurrencyLimit
 
 # Spring Dev Tools
@@ -159,4 +232,23 @@ Kolla användning av com.fasterxml.jackson i bokens källkod...
 
 ## AOT Cache in Java 25
 
-## Null safety
+## Null safety + my open rewrite
+
+## HTTP Service clients
+
+* https://docs.spring.io/spring-boot/reference/io/rest-client.html#io.rest-client.httpservice
+* https://docs.spring.io/spring-framework/reference/integration/rest-clients.html#rest-http-service-client
+
+## Pkce SA Server
+
+## Spring Data Aot repo
+
+## Migrering & open rewrite
+
+* https://www.moderne.ai/blog/speed-your-spring-boot-3-0-migration
+* https://www.moderne.ai/community
+* https://docs.openrewrite.org/recipes/java/spring/boot4
+* https://docs.openrewrite.org/recipes/java/spring/boot4/upgradespringboot_4_0-community-edition
+* https://docs.openrewrite.org/recipes/java/spring/boot4/upgradespringboot_4_0-moderne-edition
+* https://docs.moderne.io/user-documentation/moderne-cli/getting-started/cli-intro/
+* https://docs.moderne.io/user-documentation/moderne-platform/
