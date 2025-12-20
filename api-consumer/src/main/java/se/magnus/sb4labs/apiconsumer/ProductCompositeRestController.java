@@ -3,11 +3,15 @@ package se.magnus.sb4labs.apiconsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import se.magnus.sb4labs.api.composite.product.*;
 import se.magnus.sb4labs.api.core.product.Product;
 import se.magnus.sb4labs.api.core.recommendation.Recommendation;
 import se.magnus.sb4labs.api.core.review.Review;
+import se.magnus.sb4labs.apiconsumer.interfaceclients.ProductClient;
+import se.magnus.sb4labs.apiconsumer.interfaceclients.RecommendationClient;
+import se.magnus.sb4labs.apiconsumer.interfaceclients.ReviewClient;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -20,16 +24,30 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
 
   final static private Logger LOG = LoggerFactory.getLogger(ProductCompositeRestController.class);
 
-  final private ProductCompositeIntegrationRestClient integration;
+  final private ProductCompositeIntegration integration;
 
-  public ProductCompositeRestController(ProductCompositeIntegrationRestClient integration) {
+  final private ProductClient productClient;
+  final private RecommendationClient recommendationClient;
+  final private ReviewClient reviewClient;
+
+  public ProductCompositeRestController(
+    ProductCompositeIntegration integration,
+
+    ProductClient productClient,
+    RecommendationClient recommendationClient,
+    ReviewClient reviewClient
+  ) {
     this.integration = integration;
+
+    this.productClient = productClient;
+    this.recommendationClient = recommendationClient;
+    this.reviewClient = reviewClient;
   }
 
   @Override
   public ProductAggregate getProduct(int productId) {
 
-    LOG.debug("Calling the three APIs in parallell using StructuredTaskScope...");
+    LOG.debug("Calling the three APIs using RestClient in parallell using StructuredTaskScope...");
 
     try (var scope = StructuredTaskScope.open()) {
 
@@ -45,6 +63,63 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
       throw new RuntimeException(e);
     }
   }
+
+  @GetMapping(
+    value = "/product-composite/interface-client/{productId}",
+    produces = "application/json")
+  ProductAggregate getProduct2(@PathVariable int productId) {
+
+    LOG.debug("Calling the three APIs using interface clients in parallell using StructuredTaskScope...");
+
+    try (var scope = StructuredTaskScope.open()) {
+
+      Subtask<Product> productSubTask = scope.fork(() -> productClient.getProduct(productId));
+      Subtask<List<Recommendation>> recommendationsSubTask = scope.fork(() -> recommendationClient.getRecommendations(productId));
+      Subtask<List<Review>> reviewsSubTask = scope.fork(() -> reviewClient.getReviews(productId));
+
+      scope.join();
+
+      return createProductAggregate(productSubTask.get(), recommendationsSubTask.get(), reviewsSubTask.get());
+
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+  }
+
+  @GetMapping("/thread-info")
+  public String getThreadName() {
+    var ct = Thread.currentThread();
+    String threadInfo = MessageFormat.format("Thread info, name = {0}, is virtual = {1}, thread class = {2}",
+      ct.toString(),
+      ct.isVirtual(),
+      ct.getClass().getName());
+    LOG.debug("/thread-info returns: {}", threadInfo);
+    return threadInfo;
+  }
+
+// WORK IN PROGRESS. COPIED FROM https://github.com/micrometer-metrics/micrometer/issues/5761#issuecomment-2580798283
+//  private ProductAggregate getProductAggregatePropagateContextForObservability(int productId) {
+//    try (var scope = new StructuredTaskScope<>()) {
+//      ObservationRegistry registry = null;
+//      return Observation.createNotStarted("parent", registry)
+//               .observe( () -> {
+//                 // Capture all thread local values
+//                 ContextSnapshot snapshot = ContextSnapshotFactory.builder().contextRegistry(ContextRegistry.getInstance()).build().captureAll();
+//
+//                 StructuredTaskScope.Subtask<Product> productSubTask = scope.fork(snapshot.wrap(() -> integration.getProduct(productId)));
+//                 StructuredTaskScope.Subtask<List<Recommendation>> recommendationsSubTask = scope.fork(snapshot.wrap(() -> integration.getRecommendations(productId)));
+//                 StructuredTaskScope.Subtask<List<Review>> reviewsSubTask = scope.fork(snapshot.wrap(() -> integration.getReviews(productId)));
+//
+//                 scope.join();
+//
+//                 return createProductAggregate(productSubTask.get(), recommendationsSubTask.get(), reviewsSubTask.get());
+//               });
+//    } catch (InterruptedException e) {
+//      throw new RuntimeException(e);
+//    }
+//  }
+//
 
   private ProductAggregate createProductAggregate(
     Product product,
@@ -70,16 +145,5 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
 
     return new ProductAggregate(productId, name, weight, recommendationSummaries, reviewSummaries);
   }
-
-    @GetMapping("/thread-info")
-    public String getThreadName() {
-      var ct = Thread.currentThread();
-      String threadInfo = MessageFormat.format("Thread info, name = {0}, is virtual = {1}, thread class = {2}",
-        ct.toString(),
-        ct.isVirtual(),
-        ct.getClass().getName());
-      LOG.debug("/thread-info returns: {}", threadInfo);
-      return threadInfo;
-    }
 
 }

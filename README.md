@@ -8,17 +8,39 @@ graph TD;
     Composite-->Review;
 ```
 
+# Start Jaeger for OpenTelemetry tracing
+
+```
+docker run -d --name jaeger \
+  -p 16686:16686 \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  -p 5778:5778 \
+  -p 9411:9411 \
+  cr.jaegertracing.io/jaegertracing/jaeger:2.11.0
+```
+
+WebUI: http://localhost:16686
+
+When done:
+
+```
+docker rm -f jaeger
+```
+
 # Build and run
 
 ```
-./gradlew build 
-java --enable-preview -jar api-provider/build/libs/api-provider-0.0.1-SNAPSHOT.jar &
-java --enable-preview -jar api-consumer/build/libs/api-consumer-0.0.1-SNAPSHOT.jar &
+clear
+./gradlew build
+java -jar api-provider/build/libs/api-provider-0.0.1-SNAPSHOT.jar
+java --enable-preview --enable-native-access=ALL-UNNAMED -jar api-consumer/build/libs/api-consumer-0.0.1-SNAPSHOT.jar
 
 curl localhost:7002/product-composite/2 -i
+curl localhost:7002/product-composite/interface-client/2 -i
 curl localhost:7002/thread-info
 
-curl 'localhost:7001/1/product/1' -i
+curl localhost:7001/1/product/1 -i
 curl 'localhost:7001/1/recommendation?productId=1' -i
 curl 'localhost:7001/1/review?productId=1' -i 
 
@@ -86,25 +108,6 @@ Dependency:
 
     implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 
-## Start Jaeger for OpenTelemetry tracing
-
-```
-docker run -d --name jaeger \
-  -p 16686:16686 \
-  -p 4317:4317 \
-  -p 4318:4318 \
-  -p 5778:5778 \
-  -p 9411:9411 \
-  cr.jaegertracing.io/jaegertracing/jaeger:2.11.0
-```
-
-WebUI: http://localhost:16686
-
-When done:
-
-```
-docker rm -f jaeger
-```
 
 ## Problems with Micrometer and Structured Concurrency:
 
