@@ -38,6 +38,7 @@ java --enable-preview --enable-native-access=ALL-UNNAMED -jar api-consumer/build
 
 curl localhost:7002/product-composite/2 -i
 curl localhost:7002/product-composite/interface-client/2 -i
+curl localhost:7002/product-composite/sequential/2 -i
 curl localhost:7002/thread-info
 
 curl localhost:7001/1/product/1 -i
@@ -200,6 +201,7 @@ See:
 1. https://www.baeldung.com/spring-boot-devtools
 1. https://stackoverflow.com/questions/79306534/intellij-spring-boot-devtools-behavior
 
+1. IntelliJ Spring Debugger...
 
 ```
 dependencies {

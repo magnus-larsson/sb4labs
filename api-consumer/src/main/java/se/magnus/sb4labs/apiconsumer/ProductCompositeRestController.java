@@ -44,6 +44,21 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
     this.reviewClient = reviewClient;
   }
 
+  @GetMapping(
+    value = "/product-composite/sequential/{productId}",
+    produces = "application/json")
+  ProductAggregate getProductSequential(@PathVariable int productId) {
+
+    LOG.debug("Calling the three APIs sequentially...");
+
+    var product = productClient.getProduct(productId);
+    var recommendation = recommendationClient.getRecommendations(productId);
+    var reviews = reviewClient.getReviews(productId);
+
+    return createProductAggregate(product, recommendation, reviews);
+
+  }
+
   @Override
   public ProductAggregate getProduct(int productId) {
 
@@ -67,7 +82,7 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
   @GetMapping(
     value = "/product-composite/interface-client/{productId}",
     produces = "application/json")
-  ProductAggregate getProduct2(@PathVariable int productId) {
+  ProductAggregate getProductWithInterfaceClients(@PathVariable int productId) {
 
     LOG.debug("Calling the three APIs using interface clients in parallell using StructuredTaskScope...");
 
