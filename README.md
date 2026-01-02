@@ -171,10 +171,24 @@ Product getProduct(@PathVariable int productId);
         ...
 ```
 
-## Consumer config, with HttpServiceProxyFactory
+## Consumer config, with Interface clients
 
-Can't get it to work, see `ProductCompositeIntegrationWithProxies`
-Maybe problem with apiVersionInserter...
+No problem.
+
+# Interface clients
+
+1. OK - API Versioning 
+2. OK - Structured Concurrency
+3. OK - Config of interface clients per API   
+   See ~/Documents/projects/books/5th/git/labs/interface-clients-springio-2025-demo-rstoyanchev/api-service/src/main/resources/application.yml
+5. OK - OpenTelemetry - Tracing   
+   See `ProductCompositeRestController.getProductSequential`
+3. Error handling
+4. Circuit Breaker, Retry, and Timeout
+   Spring or Resilience4J?   
+   Start with Resilience4J!
+10. Logging
+11. Security
 
 # Resilience
 

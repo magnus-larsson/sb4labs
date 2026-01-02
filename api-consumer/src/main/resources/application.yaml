@@ -4,6 +4,40 @@ spring.threads.virtual.enabled: true
 
 server.port: 7002
 
+#spring.ssl.bundle.jks.mykeystore:
+#  key:
+#    alias: localhost
+#  keystore:
+#    type: PKCS12
+#    location: classpath:mykeystore.p12
+#    password: mypassword
+
+spring.http:
+  clients:
+    read-timeout: 2000ms
+    connect-timeout: 500ms
+#   ssl.bundle: mykeystore
+
+  serviceclient:
+    default: # default group (no load balancing)
+      connect-timeout:
+        nanos: 6666
+
+    productGroup:
+      base-url: http://localhost:7001
+      apiversion.default: 1
+
+    recommendationGroup:
+      base-url: http://localhost:7001
+      apiversion.default: 2
+
+    reviewGroup:
+      base-url: http://localhost:7001
+      apiversion.default: 3
+#     default-header:
+#       -Accept: application/json
+#     apiversion.insert.path-segment: 0
+
 app:
   product-service:
     host: localhost

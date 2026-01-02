@@ -13,10 +13,16 @@ import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.client.support.RestClientHttpServiceGroupConfigurer;
 import org.springframework.web.service.registry.HttpServiceGroup;
 import org.springframework.web.service.registry.ImportHttpServices;
+import se.magnus.sb4labs.apiconsumer.interfaceclients.ProductClient;
+import se.magnus.sb4labs.apiconsumer.interfaceclients.RecommendationClient;
+import se.magnus.sb4labs.apiconsumer.interfaceclients.ReviewClient;
 
 import java.io.IOException;
 
-@ImportHttpServices(group = "internalApis", basePackages = "se.magnus.sb4labs.apiconsumer.interfaceclients")
+@ImportHttpServices(group = "productGroup", types = ProductClient.class)
+@ImportHttpServices(group = "recommendationGroup", types = RecommendationClient.class)
+@ImportHttpServices(group = "reviewGroup", types = ReviewClient.class)
+//@ImportHttpServices(group = "internalApis", basePackages = "se.magnus.sb4labs.apiconsumer.interfaceclients")
 @Configuration
 public class InterfaceClientsConfig {
 
@@ -32,12 +38,24 @@ public class InterfaceClientsConfig {
   RestClientHttpServiceGroupConfigurer groupConfigurer() {
     return groups -> {
 
-      groups.filterByName("internalApis")
-        .forEachClient((group, builder) -> builder
-          .baseUrl(getBaseUrl(group))
+      groups.forEachClient((group, builder) -> {
+        logger.info("Configuring group {}...", group.name());
+        builder
+//          .baseUrl("http://localhost:7001")
+//          .defaultApiVersion("1")
           .defaultHeader("Accept", "application/json")
-          .defaultApiVersion("1")
-          .apiVersionInserter(ApiVersionInserter.usePathSegment(0)));
+          .apiVersionInserter(ApiVersionInserter.usePathSegment(0));
+      });
+
+//      groups.filterByName("internalApis")
+//        .forEachClient((group, builder) -> {
+//          logger.info("Configuring the internalApis group...");
+//          builder
+////          .baseUrl("http://localhost:7001")
+////          .defaultApiVersion("1")
+//            .defaultHeader("Accept", "application/json")
+//            .apiVersionInserter(ApiVersionInserter.usePathSegment(0));
+//        });
 
       groups.forEachClient((cb, builder) -> builder.requestInterceptor(new LoggingInterceptor()));
     };
