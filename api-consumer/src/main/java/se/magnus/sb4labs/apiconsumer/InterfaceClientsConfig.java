@@ -6,32 +6,40 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpRequest;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.client.support.RestClientHttpServiceGroupConfigurer;
-import org.springframework.web.service.registry.HttpServiceGroup;
 import org.springframework.web.service.registry.ImportHttpServices;
+import se.magnus.sb4labs.api.exceptions.HttpErrorInfo;
+import se.magnus.sb4labs.api.exceptions.InvalidInputException;
+import se.magnus.sb4labs.api.exceptions.NotFoundException;
 import se.magnus.sb4labs.apiconsumer.interfaceclients.ProductClient;
 import se.magnus.sb4labs.apiconsumer.interfaceclients.RecommendationClient;
 import se.magnus.sb4labs.apiconsumer.interfaceclients.ReviewClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT;
 
 @ImportHttpServices(group = "productGroup", types = ProductClient.class)
 @ImportHttpServices(group = "recommendationGroup", types = RecommendationClient.class)
 @ImportHttpServices(group = "reviewGroup", types = ReviewClient.class)
-//@ImportHttpServices(group = "internalApis", basePackages = "se.magnus.sb4labs.apiconsumer.interfaceclients")
 @Configuration
 public class InterfaceClientsConfig {
 
   private static final Logger logger = LogManager.getLogger(InterfaceClientsConfig.class);
 
-  private final AppProperties props;
+  private final JsonMapper mapper;
 
-  public InterfaceClientsConfig(AppProperties props) {
-    this.props = props;
+  public InterfaceClientsConfig(JsonMapper mapper) {
+    this.mapper = mapper;
   }
 
   @Bean
@@ -39,36 +47,38 @@ public class InterfaceClientsConfig {
     return groups -> {
 
       groups.forEachClient((group, builder) -> {
-        logger.info("Configuring group {}...", group.name());
         builder
 //          .baseUrl("http://localhost:7001")
 //          .defaultApiVersion("1")
           .defaultHeader("Accept", "application/json")
-          .apiVersionInserter(ApiVersionInserter.usePathSegment(0));
+          .apiVersionInserter(ApiVersionInserter.usePathSegment(0))
+          .defaultStatusHandler(this::shallErrorBeHandled, this::handleError)
+          .requestInterceptor(new LoggingInterceptor());
       });
-
-//      groups.filterByName("internalApis")
-//        .forEachClient((group, builder) -> {
-//          logger.info("Configuring the internalApis group...");
-//          builder
-////          .baseUrl("http://localhost:7001")
-////          .defaultApiVersion("1")
-//            .defaultHeader("Accept", "application/json")
-//            .apiVersionInserter(ApiVersionInserter.usePathSegment(0));
-//        });
-
-      groups.forEachClient((cb, builder) -> builder.requestInterceptor(new LoggingInterceptor()));
     };
   }
 
-  private static String getBaseUrl(HttpServiceGroup group) {
-//    return "http://" + switch (group.name()) {
-//      case Integer i -> i.doubleValue();
-//      case Float f -> f.doubleValue();
-//      case String s -> Double.parseDouble(s);
-//      default -> 0d;
-//    };
-    return "http://localhost:7001";
+  private boolean shallErrorBeHandled(HttpStatusCode status) {
+    if (status.isError()) logger.warn("Checking an HTTP error: {}", status.value());
+    return status.isSameCodeAs(NOT_FOUND) || status.isSameCodeAs(UNPROCESSABLE_CONTENT);
+  }
+
+  private void handleError(HttpRequest request, ClientHttpResponse response) throws IOException {
+    var status = response.getStatusCode();
+    if (status == NOT_FOUND) {
+      logger.warn("Got an NOT_FOUND HTTP error, response");
+      throw new NotFoundException(getErrorMessage(response));
+    }
+    if (status == UNPROCESSABLE_CONTENT) {
+      logger.warn("Got an UNPROCESSABLE_CONTENT HTTP error, response");
+      throw new InvalidInputException(getErrorMessage(response));
+    }
+    logger.warn("Got an unexpected HTTP error: {}...", status.value());
+  }
+
+  private String getErrorMessage(ClientHttpResponse response) throws IOException {
+    var body = StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
+    return mapper.readValue(body, HttpErrorInfo.class).message();
   }
 
   private static class LoggingInterceptor implements ClientHttpRequestInterceptor {
@@ -86,5 +96,4 @@ public class InterfaceClientsConfig {
       return execution.execute(request, body);
     }
   }
-
 }

@@ -6,11 +6,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.client.RestClient;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
+@ComponentScan("se.magnus.sb4labs")
 public class ApiConsumerApplication {
 
   final static private Logger LOG = LoggerFactory.getLogger(ApiConsumerApplication.class);

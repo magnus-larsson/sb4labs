@@ -36,6 +36,9 @@ clear
 java -jar api-provider/build/libs/api-provider-0.0.1-SNAPSHOT.jar
 java --enable-preview --enable-native-access=ALL-UNNAMED -jar api-consumer/build/libs/api-consumer-0.0.1-SNAPSHOT.jar
 
+./gradlew api-provider:build -x test && java -jar api-provider/build/libs/api-provider-0.0.1-SNAPSHOT.jar
+./gradlew api-consumer:build -x test && java --enable-preview --enable-native-access=ALL-UNNAMED -jar api-consumer/build/libs/api-consumer-0.0.1-SNAPSHOT.jar
+
 curl localhost:7002/product-composite/2 -i
 curl localhost:7002/product-composite/interface-client/2 -i
 curl localhost:7002/product-composite/sequential/2 -i
@@ -183,7 +186,29 @@ No problem.
    See ~/Documents/projects/books/5th/git/labs/interface-clients-springio-2025-demo-rstoyanchev/api-service/src/main/resources/application.yml
 5. OK - OpenTelemetry - Tracing   
    See `ProductCompositeRestController.getProductSequential`
-3. Error handling
+3. Error handling  
+   ```
+   curl localhost:7001/1/product/-1 -i
+   curl localhost:7001/1/product/13 -i
+
+   curl localhost:7002/product-composite/interface-client/-3 -i
+
+   HTTP/1.1 422
+   Content-Type: application/json
+   Transfer-Encoding: chunked
+   Date: Sun, 04 Jan 2026 14:47:01 GMT
+
+   {"timestamp":"2026-01-04T15:47:01.057647+01:00","path":"/product-composite/interface-client/-3","status":422,"error":"Unprocessable Content","message":"Invalid productId: -3"}%            
+
+   curl localhost:7002/product-composite/interface-client/13 -i
+
+   HTTP/1.1 404
+   Content-Type: application/json
+   Transfer-Encoding: chunked
+   Date: Sun, 04 Jan 2026 14:47:42 GMT
+
+   {"timestamp":"2026-01-04T15:47:42.391106+01:00","path":"/product-composite/interface-client/13","status":404,"error":"Not Found","message":"No product found for productId: 13"}%
+   ```
 4. Circuit Breaker, Retry, and Timeout
    Spring or Resilience4J?   
    Start with Resilience4J!
