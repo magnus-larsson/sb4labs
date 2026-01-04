@@ -1,8 +1,8 @@
 package se.magnus.sb4labs.apiconsumer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jspecify.annotations.NullMarked;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpRequest;
@@ -34,7 +34,7 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT;
 @Configuration
 public class InterfaceClientsConfig {
 
-  private static final Logger logger = LogManager.getLogger(InterfaceClientsConfig.class);
+  final static private Logger LOG = LoggerFactory.getLogger(ProductCompositeRestController.class);
 
   private final JsonMapper mapper;
 
@@ -59,21 +59,21 @@ public class InterfaceClientsConfig {
   }
 
   private boolean shallErrorBeHandled(HttpStatusCode status) {
-    if (status.isError()) logger.warn("Checking an HTTP error: {}", status.value());
+    if (status.isError()) LOG.warn("Checking an HTTP error: {}", status.value());
     return status.isSameCodeAs(NOT_FOUND) || status.isSameCodeAs(UNPROCESSABLE_CONTENT);
   }
 
   private void handleError(HttpRequest request, ClientHttpResponse response) throws IOException {
     var status = response.getStatusCode();
     if (status == NOT_FOUND) {
-      logger.warn("Got an NOT_FOUND HTTP error, response");
+      LOG.warn("Got an NOT_FOUND HTTP error, response");
       throw new NotFoundException(getErrorMessage(response));
     }
     if (status == UNPROCESSABLE_CONTENT) {
-      logger.warn("Got an UNPROCESSABLE_CONTENT HTTP error, response");
+      LOG.warn("Got an UNPROCESSABLE_CONTENT HTTP error, response");
       throw new InvalidInputException(getErrorMessage(response));
     }
-    logger.warn("Got an unexpected HTTP error: {}...", status.value());
+    LOG.warn("Got an unexpected HTTP error: {}...", status.value());
   }
 
   private String getErrorMessage(ClientHttpResponse response) throws IOException {
@@ -88,7 +88,7 @@ public class InterfaceClientsConfig {
     public ClientHttpResponse intercept(
       HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
 
-      logger.info("""
+      LOG.info("""
 					Performing request {} {}
 					{}
 					""", request.getMethod(), request.getURI(), request.getHeaders());
