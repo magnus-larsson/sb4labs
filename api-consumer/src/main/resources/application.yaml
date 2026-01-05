@@ -14,8 +14,8 @@ server.port: 7002
 
 spring.http:
   clients:
-    read-timeout: 2000ms
     connect-timeout: 500ms
+    read-timeout: 1000ms
 #   ssl.bundle: mykeystore
 
   serviceclient:
@@ -49,10 +49,76 @@ app:
     host: localhost
     port: 7001
 
+
 management:
+  endpoints.web.exposure.include: health,info,circuitbreakers,circuitbreakerevents
   opentelemetry.tracing.export.otlp.endpoint: http://localhost:4318/v1/traces
   tracing.sampling.probability: 1.0
   otlp.metrics.export.enabled: false
+
+# Suggestion from ChatGPT
+
+#spring:
+#  http:
+#    serviceclient:
+#      productGroup:
+#        connect-timeout: 500ms
+#        read-timeout: 500ms
+
+resilience4j:
+  retry:
+    instances:
+      productGroup:
+        maxAttempts: 2
+        waitDuration: 100ms
+
+  circuitbreaker:
+    instances:
+      productGroup:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+
+# MY OWN CONFIG
+
+resilience4j.timelimiter:
+  instances:
+    productGroup:
+      timeoutDuration: 20s
+
+spring:
+  cloud:
+    circuitbreaker:
+      resilience4j:
+        disable-time-limiter: true
+
+#resilience4j:
+#  circuitbreaker:
+#    instances:
+##      productGroupNew:
+##        slidingWindowType: COUNT_BASED
+##        slidingWindowSize: 10
+##        minimumNumberOfCalls: 5
+##        failureRateThreshold: 50
+##        waitDurationInOpenState: 10s
+##        permittedNumberOfCallsInHalfOpenState: 3
+#
+#      productGroup:
+##        allowHealthIndicatorToFail: false
+##        registerHealthIndicator: true
+#        allowHealthIndicatorToFail: true
+#        registerHealthIndicator: false
+#        slidingWindowType: COUNT_BASED
+#        slidingWindowSize: 5
+#        failureRateThreshold: 50
+#        waitDurationInOpenState: 10000
+#        permittedNumberOfCallsInHalfOpenState: 3
+#        automaticTransitionFromOpenToHalfOpenEnabled: true
+#        ignoreExceptions:
+#          - se.magnus.sb4labs.api.exceptions.InvalidInputException
+#          - se.magnus.sb4labs.api.exceptions.NotFoundException
+#
 
 logging.level:
   root: INFO

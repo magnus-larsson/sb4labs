@@ -212,6 +212,23 @@ No problem.
 4. Circuit Breaker, Retry, and Timeout
    Spring or Resilience4J?   
    Start with Resilience4J!
+
+   * https://docs.spring.io/spring-cloud-circuitbreaker/docs/current/reference/html/spring-cloud-circuitbreaker-resilience4j.html
+   * https://resilience4j.readme.io/docs/circuitbreaker
+
+   ```
+   
+    for ((n=0; n<6; n++)); do
+        curl localhost:7002/product-composite/sequential/1 -i 
+    done
+
+   curl http://localhost:7002/actuator/health -s | jq .
+   curl http://localhost:7002/actuator/circuitbreakers -s | jq .
+   curl http://localhost:7002/actuator/circuitbreakerevents -s | jq .
+   
+   alias ml-cb='clear; while true; do r=$(curl http://localhost:7002/actuator/circuitbreakers -s | jq -r .circuitBreakers.productGroup.state); sleep 1; echo $r; done'
+   ```
+
 10. Logging
 11. Security
 

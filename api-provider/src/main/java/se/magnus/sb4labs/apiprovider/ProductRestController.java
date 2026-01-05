@@ -25,6 +25,12 @@ public class ProductRestController implements ProductRestService {
       throw new NotFoundException("No product found for productId: " + productId);
     }
 
+    try {
+      LOG.debug("Sleeping for 3 seconds...");
+      Thread.sleep(3000);
+      LOG.debug("...done sleeping");
+    } catch (InterruptedException _) {}
+
     return new Product(productId, "name-" + productId, 123);
   }
 }

@@ -34,7 +34,7 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT;
 @Configuration
 public class InterfaceClientsConfig {
 
-  final static private Logger LOG = LoggerFactory.getLogger(ProductCompositeRestController.class);
+  final static private Logger LOG = LoggerFactory.getLogger(InterfaceClientsConfig.class);
 
   private final JsonMapper mapper;
 
