@@ -38,7 +38,7 @@ public class ProductCompositeIntegration implements ProductRestService, Recommen
     reviewServiceUrl = "http://" + props.reviewService().host() + ":" + props.reviewService().port() + "/review?productId=";
   }
 
-  public Product getProduct(int productId) {
+  public Product getProduct(int productId, int delay, int faultPercent) {
 
     try {
       String url = productServiceUrl + productId;

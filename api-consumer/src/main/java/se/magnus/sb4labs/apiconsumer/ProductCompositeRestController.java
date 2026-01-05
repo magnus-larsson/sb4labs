@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import se.magnus.sb4labs.api.composite.product.*;
 import se.magnus.sb4labs.api.core.product.Product;
@@ -47,11 +48,15 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
   @GetMapping(
     value = "/product-composite/sequential/{productId}",
     produces = "application/json")
-  ProductAggregate getProductSequential(@PathVariable int productId) {
+  ProductAggregate getProductSequential(
+    @PathVariable int productId,
+    @RequestParam(value = "delay", required = false, defaultValue = "0") int delay,
+    @RequestParam(value = "faultPercent", required = false, defaultValue = "0") int faultPercent
+  ) {
 
     LOG.debug("Calling the three APIs sequentially...");
 
-    var product = productClient.getProduct(productId);
+    var product = productClient.getProduct(productId, delay, faultPercent);
     var recommendation = recommendationClient.getRecommendations(productId);
     var reviews = reviewClient.getReviews(productId);
 
@@ -60,13 +65,13 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
   }
 
   @Override
-  public ProductAggregate getProduct(int productId) {
+  public ProductAggregate getProduct(int productId, int delay, int faultPercent) {
 
     LOG.debug("Calling the three APIs using RestClient in parallell using StructuredTaskScope...");
 
     try (var scope = StructuredTaskScope.open()) {
 
-      Subtask<Product> productSubTask = scope.fork(() -> integration.getProduct(productId));
+      Subtask<Product> productSubTask = scope.fork(() -> integration.getProduct(productId, delay, faultPercent));
       Subtask<List<Recommendation>> recommendationsSubTask = scope.fork(() -> integration.getRecommendations(productId));
       Subtask<List<Review>> reviewsSubTask = scope.fork(() -> integration.getReviews(productId));
 
@@ -82,13 +87,17 @@ public class ProductCompositeRestController implements ProductCompositeRestServi
   @GetMapping(
     value = "/product-composite/interface-client/{productId}",
     produces = "application/json")
-  ProductAggregate getProductWithInterfaceClients(@PathVariable int productId) {
+  ProductAggregate getProductWithInterfaceClients(
+    @PathVariable int productId,
+    @RequestParam(value = "delay", required = false, defaultValue = "0") int delay,
+    @RequestParam(value = "faultPercent", required = false, defaultValue = "0") int faultPercent
+  ) {
 
     LOG.debug("Calling the three APIs using interface clients in parallell using StructuredTaskScope...");
 
     try (var scope = StructuredTaskScope.open()) {
 
-      Subtask<Product> productSubTask = scope.fork(() -> productClient.getProduct(productId));
+      Subtask<Product> productSubTask = scope.fork(() -> productClient.getProduct(productId, delay, faultPercent));
       Subtask<List<Recommendation>> recommendationsSubTask = scope.fork(() -> recommendationClient.getRecommendations(productId));
       Subtask<List<Review>> reviewsSubTask = scope.fork(() -> reviewClient.getReviews(productId));
 
